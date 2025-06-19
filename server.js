@@ -3,6 +3,7 @@ import cors from "cors";
 import "dotenv/config";
 import { usersRouter } from "./src/routers/users.js";
 import pg from "pg";
+import { ticketsRouter } from "./src/routers/tickets.js";
 const { Client } = pg;
 
 const app = express();
@@ -23,7 +24,8 @@ pgClient.connect((err) => {
   console.log("Connected to DB");
 });
 
-await pgClient.query(`CREATE TABLE IF NOT EXISTS users(id varchar(255) NOT NULL UNIQUE, 
+await pgClient.query(`CREATE TABLE IF NOT EXISTS users(
+  id varchar(255) NOT NULL UNIQUE, 
   name varchar(255) NOT NULL, 
   email varchar(255) NOT NULL UNIQUE,
   password varchar(255) NOT NULL, 
@@ -31,10 +33,20 @@ await pgClient.query(`CREATE TABLE IF NOT EXISTS users(id varchar(255) NOT NULL 
   money_balance int);
   `);
 
+await pgClient.query(`CREATE TABLE IF NOT EXISTS tickets(
+  id varchar(255) NOT NULL UNIQUE, 
+  title varchar(255) NOT NULL, 
+  ticket_price int NOT NULL,
+  from_location varchar(255) NOT NULL, 
+  to_location varchar(255) NOT NULL, 
+  to_location_photo_url text NOT NULL);
+  `);
+
 app.use(express.json());
 app.use(cors());
 
 app.use("/users", usersRouter);
+app.use("/tickets", ticketsRouter);
 
 app.listen(process.env.PORT, () => {
   console.log(`App running on port ${process.env.PORT}`);
