@@ -133,14 +133,33 @@ export const REFRESH_TOKEN = (req, res) => {
         { expiresIn: "2h" }
       );
 
-      return res
-        .status(200)
-        .json({
-          message: "Token refreshed.",
-          token: token,
-          refresh_token: refresh_token,
-        });
+      return res.status(200).json({
+        message: "Token refreshed.",
+        token: token,
+        refresh_token: refresh_token,
+      });
     });
+  } catch (error) {
+    return res.status(500).json({
+      message: "There are issues.",
+      error: error,
+    });
+  }
+};
+
+export const GET_USER_BY_ID = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const response = await pgClient.query({
+      text: `SELECT * FROM users WHERE id = $1`,
+      values: [id],
+    });
+
+    const user = response.rows[0];
+
+    if (!user) return res.status(404).json({ message: "No such user found." });
+
+    return res.status(200).json({ message: "Here is your user", user: user });
   } catch (error) {
     return res.status(500).json({
       message: "There are issues.",

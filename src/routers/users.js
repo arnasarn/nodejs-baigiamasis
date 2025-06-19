@@ -1,6 +1,7 @@
 import express from "express";
 import {
   GET_ALL_USERS,
+  GET_USER_BY_ID,
   LOGIN_USER,
   REFRESH_TOKEN,
   SIGNUP_USER,
@@ -16,6 +17,8 @@ import { auth } from "../middlewares/auth.js";
 export const usersRouter = express.Router();
 
 usersRouter.get("/", auth, GET_ALL_USERS);
+
+usersRouter.get("/:id", auth, GET_USER_BY_ID);
 
 usersRouter.post("/signUp", validation(userRegisterSchema), SIGNUP_USER);
 
