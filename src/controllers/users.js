@@ -1,0 +1,72 @@
+import { pgClient } from "../../server.js";
+import { v4 as uuidv4 } from "uuid";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+
+export const GET_ALL_USERS = async (req, res) => {
+  try {
+    const response = await pgClient.query(
+      `SELECT * FROM USERS ORDER BY name ASC`
+    );
+    return res
+      .status(200)
+      .json({ message: "Here are all the users.", users: response.rows });
+  } catch (error) {
+    return res.status(500).json({
+      message: "There are issues.",
+      error: error,
+    });
+  }
+};
+
+export const SIGNUP_USER = async (req, res) => {
+  try {
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(req.body.password, salt);
+
+    let name = req.body.name;
+    if (name === name.toLowerCase()) {
+      name = name[0].toUpperCase() + name.slice(1, name.length);
+    }
+
+    const response = await pgClient.query({
+      text: `INSERT INTO users(id, name, email, password, bought_tickets, money_balance)
+      VALUES($1, $2, $3, $4, $5, $6) RETURNING *`,
+      values: [
+        uuidv4(),
+        name,
+        req.body.email,
+        hash,
+        req.body.bought_tickets,
+        req.body.money_balance,
+      ],
+    });
+
+    const token = jwt.sign(
+      { name: req.body.name, password: hash },
+      process.env.JWT_SECRET,
+      { expiresIn: "2h" }
+    );
+
+    const refresh_token = jwt.sign(
+      { name: req.body.name, password: hash },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    return res.status(201).json({
+      message: "User successfully registered.",
+      user: response.rows[0],
+      token: token,
+      refresh_token: refresh_token,
+    });
+  } catch (error) {
+    if (error.code === "23505")
+      return res.status(400).json({ message: "Email already exists." });
+
+    return res.status(500).json({
+      message: "There are issues.",
+      error: error,
+    });
+  }
+};
