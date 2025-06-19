@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 export const GET_ALL_USERS = async (req, res) => {
   try {
     const response = await pgClient.query(
-      `SELECT * FROM USERS ORDER BY name ASC`
+      `SELECT id, name, email, bought_tickets, money_balance FROM users ORDER BY name ASC`
     );
     return res
       .status(200)
@@ -31,14 +31,14 @@ export const SIGNUP_USER = async (req, res) => {
 
     const response = await pgClient.query({
       text: `INSERT INTO users(id, name, email, password, bought_tickets, money_balance)
-      VALUES($1, $2, $3, $4, $5, $6) RETURNING *`,
+      VALUES($1, $2, $3, $4, $5, $6) RETURNING id, name, email, bought_tickets, money_balance`,
       values: [
         uuidv4(),
         name,
         req.body.email,
         hash,
-        req.body.bought_tickets,
-        req.body.money_balance,
+        req.body.bought_tickets ?? [],
+        req.body.money_balance ?? 0,
       ],
     });
 
@@ -54,7 +54,7 @@ export const SIGNUP_USER = async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    return res.status(201).json({
+    return res.status(200).json({
       message: "User successfully registered.",
       user: response.rows[0],
       token: token,
@@ -64,6 +64,53 @@ export const SIGNUP_USER = async (req, res) => {
     if (error.code === "23505")
       return res.status(400).json({ message: "Email already exists." });
 
+    return res.status(500).json({
+      message: "There are issues.",
+      error: error,
+    });
+  }
+};
+
+export const LOGIN_USER = async (req, res) => {
+  try {
+    const response = await pgClient.query({
+      text: `SELECT email, password FROM users WHERE email = $1`,
+      values: [req.body.email],
+    });
+
+    const user = response.rows[0];
+
+    if (!user)
+      return res.status(404).json({ message: "No such email exists." });
+
+    const isPasswordCorrect = bcrypt.compareSync(
+      req.body.password,
+      user.password
+    );
+
+    if (!isPasswordCorrect)
+      return res.status(401).json({ message: "Password is incorrect" });
+
+    const token = jwt.sign(
+      { email: user.email, password: user.password },
+      process.env.JWT_SECRET,
+      { expiresIn: "2h" }
+    );
+
+    const refresh_token = jwt.sign(
+      { email: user.email, password: user.password },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    return res
+      .status(200)
+      .json({
+        message: "Successfully logged in.",
+        token: token,
+        refresh_token: refresh_token,
+      });
+  } catch (error) {
     return res.status(500).json({
       message: "There are issues.",
       error: error,

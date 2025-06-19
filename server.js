@@ -27,8 +27,8 @@ await pgClient.query(`CREATE TABLE IF NOT EXISTS users(id varchar(255) NOT NULL 
   name varchar(255) NOT NULL, 
   email varchar(255) NOT NULL UNIQUE,
   password varchar(255) NOT NULL, 
-  bought_tickets int[] NOT NULL, 
-  money_balance int NOT NULL);
+  bought_tickets varchar(255)[], 
+  money_balance int);
   `);
 
 app.use(express.json());
