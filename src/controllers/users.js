@@ -42,14 +42,16 @@ export const SIGNUP_USER = async (req, res) => {
       ],
     });
 
+    const user = response.rows[0];
+
     const token = jwt.sign(
-      { name: req.body.name, password: hash },
+      { email: user.email, password: hash, id: user.id },
       process.env.JWT_SECRET,
       { expiresIn: "2h" }
     );
 
     const refresh_token = jwt.sign(
-      { name: req.body.name, password: hash },
+      { email: user.email, password: hash, id: user.id },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
@@ -74,7 +76,7 @@ export const SIGNUP_USER = async (req, res) => {
 export const LOGIN_USER = async (req, res) => {
   try {
     const response = await pgClient.query({
-      text: `SELECT email, password FROM users WHERE email = $1`,
+      text: `SELECT id, email, password FROM users WHERE email = $1`,
       values: [req.body.email],
     });
 
@@ -92,24 +94,22 @@ export const LOGIN_USER = async (req, res) => {
       return res.status(401).json({ message: "Password is incorrect" });
 
     const token = jwt.sign(
-      { email: user.email, password: user.password },
+      { email: user.email, password: user.password, id: user.id },
       process.env.JWT_SECRET,
       { expiresIn: "2h" }
     );
 
     const refresh_token = jwt.sign(
-      { email: user.email, password: user.password },
+      { email: user.email, password: user.password, id: user.id },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    return res
-      .status(200)
-      .json({
-        message: "Successfully logged in.",
-        token: token,
-        refresh_token: refresh_token,
-      });
+    return res.status(200).json({
+      message: "Successfully logged in.",
+      token: token,
+      refresh_token: refresh_token,
+    });
   } catch (error) {
     return res.status(500).json({
       message: "There are issues.",

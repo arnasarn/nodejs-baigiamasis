@@ -6,10 +6,11 @@ import {
 } from "../controllers/users.js";
 import { validation } from "../middlewares/validation.js";
 import { userLoginSchema, userRegisterSchema } from "../schemas/users.js";
+import { auth } from "../middlewares/auth.js";
 
 export const usersRouter = express.Router();
 
-usersRouter.get("/", GET_ALL_USERS);
+usersRouter.get("/", auth, GET_ALL_USERS);
 
 usersRouter.post("/signUp", validation(userRegisterSchema), SIGNUP_USER);
 
