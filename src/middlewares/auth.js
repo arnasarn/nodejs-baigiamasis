@@ -12,7 +12,7 @@ export const auth = (req, res, next) => {
         .status(401)
         .json({ message: "You have provided an invalid token." });
 
-    req.body.id = decoded.id;
+    req.body.userId = decoded.id;
 
     next();
   });
