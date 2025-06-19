@@ -155,3 +155,70 @@ export const GET_USER_BY_ID = async (req, res) => {
     });
   }
 };
+
+export const GET_USERS_AGGREGATED_TICKETS = async (req, res) => {
+  try {
+    const users = await UserModel.aggregate([
+      {
+        $lookup: {
+          from: "tickets",
+          localField: "bought_tickets",
+          foreignField: "id",
+          as: "tickets",
+        },
+      },
+      {
+        $project: {
+          password: 0,
+          _id: 0,
+          __v: 0,
+        },
+      },
+    ]);
+
+    return res
+      .status(200)
+      .json({ message: "Here are your aggregated users.", users: users });
+  } catch (error) {
+    return res.status(500).json({
+      message: "There are issues.",
+      error: error,
+    });
+  }
+};
+
+export const GET_USERS_AGGREGATED_TICKETS_BY_ID = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const users = await UserModel.aggregate([
+      {
+        $match: { id: id },
+      },
+      {
+        $lookup: {
+          from: "tickets",
+          localField: "bought_tickets",
+          foreignField: "id",
+          as: "tickets",
+        },
+      },
+      {
+        $project: {
+          password: 0,
+          _id: 0,
+          __v: 0,
+        },
+      },
+    ]);
+
+    return res
+      .status(200)
+      .json({ message: "Here are your aggregated users.", users: users });
+  } catch (error) {
+    return res.status(500).json({
+      message: "There are issues.",
+      error: error,
+    });
+  }
+};

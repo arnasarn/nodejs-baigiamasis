@@ -5,6 +5,8 @@ import {
   LOGIN_USER,
   REFRESH_TOKEN,
   SIGNUP_USER,
+  GET_USERS_AGGREGATED_TICKETS,
+  GET_USERS_AGGREGATED_TICKETS_BY_ID,
 } from "../controllers/users.js";
 import { validation } from "../middlewares/validation.js";
 import {
@@ -17,6 +19,14 @@ import { auth } from "../middlewares/auth.js";
 export const usersRouter = express.Router();
 
 usersRouter.get("/", auth, GET_ALL_USERS);
+
+usersRouter.get("/aggregatedTickets", auth, GET_USERS_AGGREGATED_TICKETS);
+
+usersRouter.get(
+  "/aggregatedTickets/:id",
+  auth,
+  GET_USERS_AGGREGATED_TICKETS_BY_ID
+);
 
 usersRouter.get("/:id", auth, GET_USER_BY_ID);
 
