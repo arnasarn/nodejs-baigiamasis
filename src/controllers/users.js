@@ -117,3 +117,34 @@ export const LOGIN_USER = async (req, res) => {
     });
   }
 };
+
+export const REFRESH_TOKEN = (req, res) => {
+  try {
+    const refresh_token = req.body.token;
+    jwt.verify(refresh_token, process.env.JWT_SECRET, (error, decoded) => {
+      if (error)
+        return res
+          .status(400)
+          .json({ message: "Token expired, please log in again." });
+
+      const token = jwt.sign(
+        { email: decoded.email, password: decoded.password, id: decoded.id },
+        process.env.JWT_SECRET,
+        { expiresIn: "2h" }
+      );
+
+      return res
+        .status(200)
+        .json({
+          message: "Token refreshed.",
+          token: token,
+          refresh_token: refresh_token,
+        });
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "There are issues.",
+      error: error,
+    });
+  }
+};
