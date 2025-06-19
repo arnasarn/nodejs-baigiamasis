@@ -187,11 +187,11 @@ export const GET_USERS_AGGREGATED_TICKETS = async (req, res) => {
   }
 };
 
-export const GET_USERS_AGGREGATED_TICKETS_BY_ID = async (req, res) => {
+export const GET_USER_AGGREGATED_TICKETS_BY_ID = async (req, res) => {
   try {
     const id = req.params.id;
 
-    const users = await UserModel.aggregate([
+    const user = await UserModel.aggregate([
       {
         $match: { id: id },
       },
@@ -212,9 +212,12 @@ export const GET_USERS_AGGREGATED_TICKETS_BY_ID = async (req, res) => {
       },
     ]);
 
+    if (user.length === 0)
+      return res.status(404).json({ message: "No such user found." });
+
     return res
       .status(200)
-      .json({ message: "Here are your aggregated users.", users: users });
+      .json({ message: "Here are your aggregated users.", user: user });
   } catch (error) {
     return res.status(500).json({
       message: "There are issues.",
