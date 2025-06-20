@@ -156,7 +156,7 @@ export const GET_USER_BY_ID = async (req, res) => {
   }
 };
 
-export const GET_USERS_AGGREGATED_TICKETS = async (req, res) => {
+export const GET_USERS_WITH_TICKETS = async (req, res) => {
   try {
     const users = await UserModel.aggregate([
       {
@@ -187,7 +187,7 @@ export const GET_USERS_AGGREGATED_TICKETS = async (req, res) => {
   }
 };
 
-export const GET_USER_AGGREGATED_TICKETS_BY_ID = async (req, res) => {
+export const GET_USER_WITH_TICKETS_BY_ID = async (req, res) => {
   try {
     const id = req.params.id;
 
